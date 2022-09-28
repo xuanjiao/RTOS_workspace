@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stdio.h"
 #include "FreeRTOS.h"
 #include "task.h"
 /* USER CODE END Includes */
@@ -99,7 +100,7 @@ int main(void)
   status = xTaskCreate( task1_handler,
                           "Task_1",
                           200, /* 800 bytes */
-                          "Hello World from task 1",
+                          "Hello World from task 1\n",
                           2,
 							&task1_handle);
 
@@ -107,7 +108,7 @@ int main(void)
   status = xTaskCreate( task2_handler,
                           "Task_2",
                           200, /* 800 bytes */
-                          "Hello World from task 2",
+                          "Hello World from task 2\n",
                           3,
 							&task2_handle);
 
@@ -129,18 +130,6 @@ int main(void)
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-}
-
-void task1_handler(void* param){
-	while(1) {
-		printf("%s",(char*)param);
-	}
-}
-
- void task2_handler(void* param){
-	while(1) {
-		printf("%s",(char*)param);
-	}
 }
 
 /**
@@ -232,8 +221,18 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void task1_handler(void* param){}
-void task2_handler(void* param){}
+static void task1_handler(void* param){
+	while(1) {
+		printf("%s",(char*)param);
+	}
+}
+
+ static void task2_handler(void* param){
+	while(1) {
+		printf("%s",(char*)param);
+	}
+}
+
 /* USER CODE END 4 */
 
 /**
