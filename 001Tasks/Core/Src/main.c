@@ -43,7 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#define DWT_CTRL 				(*(volatile uint32_t*)0xE0001000)
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +96,11 @@ int main(void)
 
   TaskHandle_t task1_handle;
   TaskHandle_t task2_handle;
+
+  // Enable the CYCCNT counter
+  DWT_CTRL |= ( 1 << 0 );
+
+  // SEGGER_Sys
 
   status = xTaskCreate( task1_handler,
                           "Task_1",
