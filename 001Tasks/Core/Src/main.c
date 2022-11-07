@@ -49,6 +49,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+extern  void SEGGER_UART_init(uint32_t);
 /* USER CODE BEGIN PFP */
 
 static void task1_handler(void* param);
@@ -91,7 +92,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-
   BaseType_t status;
 
   TaskHandle_t task1_handle;
@@ -99,6 +99,10 @@ int main(void)
 
   // Enable the CYCCNT counter
   DWT_CTRL |= ( 1 << 0 );
+
+  SEGGER_UART_init(500000);
+  SEGGER_SYSVIEW_Conf();
+  // SEGGER_SYSVIEW_Start();
 
   // SEGGER_Sys
 
@@ -114,7 +118,7 @@ int main(void)
                           "Task_2",
                           200, /* 800 bytes */
                           "Hello World from task 2\n",
-                          3,
+                          2,
 							&task2_handle);
 
   configASSERT(status == pdPASS);
@@ -228,13 +232,13 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 static void task1_handler(void* param){
 	while(1) {
-		printf("%s",(char*)param);
+		printf("%s\n",(char*)param);
 	}
 }
 
  static void task2_handler(void* param){
 	while(1) {
-		printf("%s",(char*)param);
+		printf("%s\n",(char*)param);
 	}
 }
 
