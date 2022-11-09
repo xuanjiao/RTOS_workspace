@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
+#include "FreeRTOS.h"
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,19 +43,21 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#define DWT_CTRL 				(*(volatile uint32_t*)0xE0001000)
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
-
+extern  void SEGGER_UART_init(uint32_t);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+static void led_green_handler(void* param);
+static void led_red_handler(void* param);
+static void led_blue_handler(void* param);
 /* USER CODE END 0 */
 
 /**
@@ -85,6 +89,29 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  BaseType_t status;
+
+  TaskHandle_t task1_handle;
+  TaskHandle_t task2_handle;
+  TaskHandle_t task3_handle;
+
+  // Enable the CYCCNT counter
+  DWT_CTRL |= (1 << 0);
+
+  SEGGER_UART_init(500000);
+  SEGGER_SYSVIEW_Conf();
+
+  status = xTaskCreate(led_green_handler,"LED_green_task",200,NULL,2,&task1_handle);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(led_red_handler,"LED_red_task",200,NULL,2,&task2_handle);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(led_blue_handler,"LED_blue_task",200,NULL,2,&task3_handle);
+  configASSERT(status == pdPASS);
+
+  // Start the real time scheduler
+    vTaskStartScheduler();
 
   /* USER CODE END 2 */
 
@@ -162,7 +189,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, Green_LED_Pin|Red_LED_Pin|Blue_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -178,18 +205,61 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : Green_LED_Pin Red_LED_Pin Blue_LED_Pin */
+  GPIO_InitStruct.Pin = Green_LED_Pin|Red_LED_Pin|Blue_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
+static void led_green_handler(void* param){
+	while(1) {
+		SEGGER_SYSVIEW_PrintfTarget("Toggling green LED");
+		HAL_GPIO_TogglePin(GPIOA,Green_LED_Pin);
+		HAL_Delay(1000);
+	}
+
+}
+static void led_red_handler(void* param){
+	while(1) {
+		SEGGER_SYSVIEW_PrintfTarget("Toggling red LED");
+		HAL_GPIO_TogglePin(GPIOA,Red_LED_Pin);
+		HAL_Delay(800);
+	}
+}
+static void led_blue_handler(void* param){
+	while(1) {
+		SEGGER_SYSVIEW_PrintfTarget("Toggling blue LED");
+		HAL_GPIO_TogglePin(GPIOA,Blue_LED_Pin);
+		HAL_Delay(400);
+	}
+}
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
